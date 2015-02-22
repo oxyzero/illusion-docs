@@ -1,12 +1,24 @@
 # Illusion Container
 
+- [Introcuction](#introduction)
+- [Basic Concepts](#basic-concepts)
+- [Basic Usage](#basic-usage)
+- [Using "Array Access" and "Magic Methods"](#using-array-access-and-magic-methods)
+- [Services](#services)
+- [Instances](#instances)
+- [Shared Instances](#shared-instances)
+- [Protecting Parameters](#protecting-parameters)
+- [Method Injection](#method-injection)
+- [Extending Services](#extending-services)
+- [Helper Functionality](#helper-functionality)
+
 ## Introduction
 
-The Illusion Container is an Dependency Injection Container and it was highly inspired by [Laravel's IoC Container](http://laravel.com/docs/5.0/container) and [Pimple](https://github.com/silexphp/Pimple).
+The Illusion Container is a Dependency Injection Container and it was highly inspired by [Laravel's IoC Container](http://laravel.com/docs/5.0/container) and [Pimple](https://github.com/silexphp/Pimple).
 
 ## Basic Usage
 
-In order to use the Illusion Container you have to create an instance of the container and then register an service, such as:
+In order to use the Illusion Container you have to create an instance of the container and then register a binding, such as:
 
 ```php
 use Illusion\Container\Container;
@@ -14,7 +26,7 @@ use Illusion\Container\Container;
 // Instantiate the container
 $container = new Container();
 
-// Register the service Foo, binding it to 'foo'.
+// Register the service Foo, binding it to 'foo' in the container.
 $container->register('foo', function($c) {
     return new Foo;
 });
@@ -59,10 +71,10 @@ $bar = $container->resolve($bar);
 echo $bar->get(); // Outputs: 1
 ```
 
-As you can see from the example above, the container automatically injects any dependency your class needs to get instantiated.
+As you can see from the example above, the container automatically injects any dependency your constructor needs to get instantiated.
 
 > **Note:** Everytime you resolve a binding, a new instance of the service will be given to you.
-> If your objective is get the same instance after each resolve, check [Shared Instances](#shared-instances).
+> If your objective is to get the same instance after each resolve, check [Shared Instances](#shared-instances).
 
 
 ## Using "Array Access" and "Magic Methods"
@@ -72,23 +84,23 @@ You can use the "Array Access" and "Magic Methods" to access the basic functiona
 ```php
 // Registering:
     $container->register('foo', 'Foo'); // Normal Call
-    $container->foo = 'Foo'; // Magic Method
-    $container['foo'] = 'Foo'; // Array Access
+    $container->foo = 'Foo';            // Magic Method
+    $container['foo'] = 'Foo';          // Array Access
 
 // Resolving:
-    $container->resolve('foo'); // Normal Call
-    $container->foo; // Magic Method
-    $containter['foo']; // Array Access
+    $container->resolve('foo');         // Normal Call
+    $container->foo;                    // Magic Method
+    $containter['foo'];                 // Array Access
 
 // If the binding is set:
-    $container->has('foo'); // Normal Call
-    isset($container->foo); // Magic Method
-    isset($container['foo']); // Array Access
+    $container->has('foo');             // Normal Call
+    isset($container->foo);             // Magic Method
+    isset($container['foo']);           // Array Access
 
 // Deleting a binding:
-    $container->delete('foo'); // Normal Call
-    unset($container->foo); // Magic Method
-    unset($container['foo']); // Array Access
+    $container->delete('foo');          // Normal Call
+    unset($container->foo);             // Magic Method
+    unset($container['foo']);           // Array Access
 ```
 This eases the usage of your service methods such as:
 ```php
@@ -98,16 +110,18 @@ $container->foo->method();
 $container->resolve('foo')->method();
 ```
 
-> **Note:** Registering an service through "Array Access" or "Magic Methods" will not create a [Shared Instance](#shared-instances).
+> **Note:** Registering a service through "Array Access" or "Magic Methods" will not create a [Shared Instance](#shared-instances).
 
 # Services
 
 As seen previously, in order to use a service with the container you do:
 ```php
+// Register the service.
 $container->register('foo', function($c) {
     return new \App\Foo;
 });
 
+// Resolve the service.
 $container->resolve('foo');
 ```
 
@@ -127,7 +141,7 @@ $container->resolve('foo', array('Hello!', 20));
 
 ## Instances
 
-If you already have an instance of your service, you can add it into the container like such:
+If you already have an instance of your service, you can add it into the container such as:
 
 ```php
 // Your instance
@@ -140,11 +154,20 @@ $container->instance('foo', $foo);
 $container->resolve('foo');
 ```
 
-> **Note:** You can pass in a third argument into the `instance()` method to make your instance an [Shared Instance](#shared-instances) in the container.
+> **Important:** The instance() method creates a Shared Instance by default!
+
+If don't want to create a [Shared Instance](#shared-instances) by default you can do:
+```php
+$container->instance('foo', $foo, false);
+```
 
 ## Shared Instances
 
-A Shared Instance in the container is an instance that only gets resolved once on every call. So everytime you resolve the binding, you will always obtain the same instance. To create a shared instance, all you have to do is the following:
+A Shared Instance in the container is an instance that only gets resolved once and then returns that same instance on every call.
+
+So everytime you resolve the binding, you will always obtain the same instance.
+
+To create a shared instance, all you have to do is the following:
 
 ```php
 // Register a shared instance
@@ -157,14 +180,16 @@ $container->singleton('foo', 'Foo');
 $container->share('foo', 'Foo');
 
 // Or if you already have an instance:
-$container->instance('foo', $fooInstance, true);
+$container->instance('foo', $fooInstance);
 ```
 
-> **Important:** Both "Array Access" and "Magic Methods" do not allow you to create shared instances.
+> **Note:** Both "Array Access" and "Magic Methods" do not allow you to create shared instances.
 
 ## Protecting parameters
 
 The Illusion Container also allows you to protect parameters.
+
+This can be useful in case you want to store configuration, or maybe even functions.
 
 ```php
 // Register a protected parameter
@@ -214,7 +239,7 @@ echo $result; // Outputs: Bar has been set!
 
 ## Extending Services
 
-If you want to extend an already defined service, you can using the `extend()` method.
+If you want to extend an already defined service, you can by using the `extend()` method.
 
 ```php
 // Defining a service:
@@ -237,15 +262,17 @@ $container->resolve('foo');
 ## Helper Functionality
 
 ### Method keys()
-:   This method returns an array with all of the registered keys within the container.
+    This method returns an array with all of the registered keys within the container.
 
 ### Method deleteInstance($key)
-:   Deletes an Shared Instance of a key binding.
+    Deletes an Shared Instance of a key binding.
+    
     Useful if you want to resolve your Shared Instance again.
 
 ### Method deleteInstances()
-:   Deletes all Shared Instances from the container.
+    Deletes all Shared Instances from the container.
+    
     Useful if you want to resolve all of your Shared Instances again.
 
 ### Method flush()
-:   Deletes all of the keys within the container.
+    Deletes all of the keys within the container.
