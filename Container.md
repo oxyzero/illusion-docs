@@ -1,7 +1,6 @@
 # Illusion Container
 
 - [Introcuction](#introduction)
-- [Basic Concepts](#basic-concepts)
 - [Basic Usage](#basic-usage)
 - [Using "Array Access" and "Magic Methods"](#using-array-access-and-magic-methods)
 - [Services](#services)
