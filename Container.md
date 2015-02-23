@@ -101,7 +101,7 @@ You can use the "Array Access" and "Magic Methods" to access the basic functiona
     unset($container->foo);             // Magic Method
     unset($container['foo']);           // Array Access
 ```
-This eases the usage of your service methods such as:
+This eases the usage of your service methods, so that you're able to call your methods like this:
 ```php
 $container->foo->method();
 
@@ -140,7 +140,7 @@ $container->resolve('foo', array('Hello!', 20));
 
 ## Instances
 
-If you already have an instance of your service, you can add it into the container such as:
+If you already have an instance of your service, you can add it into the container with the `instance()` method.
 
 ```php
 // Your instance
@@ -238,7 +238,7 @@ echo $result; // Outputs: Bar has been set!
 
 ## Extending Services
 
-If you want to extend an already defined service, you can by using the `extend()` method.
+If you want to extend an already defined service, you can do so by using the `extend()` method.
 
 ```php
 // Defining a service:
